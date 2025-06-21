@@ -45,11 +45,16 @@ start_button= tk.Button(slide1,text="Starten", font=("segoe UI",16),command=lamb
 start_button.pack(pady=20)
 
 # placing the picture for the experiment
-waldo_image=open("WhereIsWaldo.jpg")
-waldo_image=waldo_image.resize((700,700),Image.Resampling.LANCZOS)
+waldo_image=Image.open("WhereIsWaldo.jpg")
+
 photo=ImageTk.PhotoImage(waldo_image)
 
-waldo_image_label=tk.label(slide2)
+waldo_image_label=tk.Label(slide2, image=photo)
+waldo_image_label.image=photo
+waldo_image_label.pack(expand=TRUE)
+
+
+
 
 
 # exiting fullscreen mode with esc
