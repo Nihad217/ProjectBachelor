@@ -1,3 +1,4 @@
+import time
 import tkinter as tk
 from tkinter import *
 from PIL import Image, ImageTk
@@ -11,11 +12,14 @@ welcome.title("The visual guidance experiment! ")
 
 slide1=tk.Frame(welcome)
 slide2=tk.Frame(welcome)
+slide3=tk.Frame(welcome)
 
-for frame in(slide1,slide2):
+
+for frame in(slide1,slide2,slide3):
     frame.grid(row=0,column=0,sticky="nsew")
     welcome.rowconfigure(0, weight=1)
     welcome.columnconfigure(0, weight=1)
+    welcome.columnconfigure(0,weight=1)
 
 # make a fullscreen view
 welcome.attributes('-fullscreen',True)
@@ -41,10 +45,10 @@ label2.pack(expand=True)
 
 # creating a start button
 
-start_button= tk.Button(slide1,text="Starten", font=("segoe UI",16),command=lambda:show_frame(slide2))
+start_button= tk.Button(slide1,text="Starten", font=("segoe UI",16),command=lambda:go_to_slide2())
 start_button.pack(pady=20)
 
-# placing the picture for the experiment
+# placing the pictures for the experiment
 waldo_image=Image.open("WhereIsWaldo.jpg")
 
 photo=ImageTk.PhotoImage(waldo_image)
@@ -53,9 +57,18 @@ waldo_image_label=tk.Label(slide2, image=photo)
 waldo_image_label.image=photo
 waldo_image_label.pack(expand=TRUE)
 
+waldo_image2=Image.open("whereIsWaldo2.jpg")
+waldo_image2= waldo_image2.resize((1000,1000),Image.Resampling.LANCZOS)
+photo=ImageTk.PhotoImage(waldo_image2)
 
+waldo_image2_label=tk.Label(slide3, image=photo)
+waldo_image2_label.image=photo
+waldo_image2_label.pack(expand=TRUE)
 
-
+# Developing an automatic switch to the next picture after delay through slide3
+def go_to_slide2():
+    show_frame(slide2)
+    slide2.after(6000,lambda:show_frame(slide3))
 
 # exiting fullscreen mode with esc
 
