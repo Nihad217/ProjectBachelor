@@ -13,6 +13,13 @@ welcome.title("The visual guidance experiment! ")
 slide1=tk.Frame(welcome)
 slide2=tk.Frame(welcome)
 slide3=tk.Frame(welcome)
+slide4=tk.Frame(welcome)
+slide5=tk.Frame(welcome)
+slide6=tk.Frame(welcome)
+slide7=tk.Frame(welcome)
+slide8=tk.Frame(welcome)
+slide9=tk.Frame(welcome)
+slide10=tk.Frame(welcome)
 
 
 for frame in(slide1,slide2,slide3):
@@ -45,8 +52,11 @@ label2.pack(expand=True)
 
 # creating a start button
 
-start_button= tk.Button(slide1,text="Starten", font=("segoe UI",16),command=lambda:go_to_slide2())
+start_button= tk.Button(slide1,text="Starten", font=("Segoe UI",16),command=lambda:start_counting(3))
 start_button.pack(pady=20)
+countdown_label =tk.Label(slide1, text="", font=("Segoe UI",40),fg="red")
+countdown_label.pack(pady=10)
+
 
 # placing the pictures for the experiment
 waldo_image=Image.open("WhereIsWaldo.jpg")
@@ -69,6 +79,18 @@ waldo_image2_label.pack(expand=TRUE)
 def go_to_slide2():
     show_frame(slide2)
     slide2.after(6000,lambda:show_frame(slide3))
+
+# defining a function for countdown
+
+def start_counting(seconds):
+    if seconds >= 0:
+        countdown_label.config(text=str(seconds))
+        slide1.after(1000,lambda:start_counting(seconds-1))
+
+    else:
+        countdown_label.config(text="")
+        go_to_slide2()
+
 
 # exiting fullscreen mode with esc
 
