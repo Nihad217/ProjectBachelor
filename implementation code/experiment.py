@@ -21,9 +21,10 @@ slide7=tk.Frame(welcome)
 slide8=tk.Frame(welcome)
 slide9=tk.Frame(welcome)
 slide10=tk.Frame(welcome)
+slide11=tk.Frame(welcome)
 
 
-for frame in(slide1,slide2,slide3,slide4,slide5,slide6,slide7,slide8,slide9,slide10):
+for frame in(slide1,slide2,slide3,slide4,slide5,slide6,slide7,slide8,slide9,slide10,slide11):
     frame.grid(row=0,column=0,sticky="nsew")
     welcome.rowconfigure(0, weight=1)
     welcome.columnconfigure(0, weight=1)
@@ -110,11 +111,39 @@ waldo_image6_label.image=photo6
 waldo_image6_label.pack(expand=True)
 
 waldo_image7=Image.open("whereIsWaldo7.jpg")
+
 photo7=ImageTk.PhotoImage(waldo_image7)
 
 waldo_image7_label=tk.Label(slide8, image=photo7)
 waldo_image7_label.image=photo7
 waldo_image7_label.pack(expand=True)
+
+waldo_image8=Image.open("whereIsWaldo8.jpg")
+waldo_image8=waldo_image8.resize((1000,1000),Image.Resampling.LANCZOS)
+
+photo8=ImageTk.PhotoImage(waldo_image8)
+
+waldo_image8_label=tk.Label(slide9, image=photo8)
+waldo_image8_label.image=photo8
+waldo_image8_label.pack(expand=True)
+
+waldo_image9=Image.open("whereIsWaldo9.jpg")
+waldo_image9=waldo_image9.resize((1000,1000),Image.Resampling.LANCZOS)
+
+photo9=ImageTk.PhotoImage(waldo_image9)
+
+waldo_image9_label=tk.Label(slide10, image=photo9)
+waldo_image9_label.image=photo9
+waldo_image9_label.pack(expand=True)
+
+waldo_image10=Image.open("whereIsWaldo10.jpg")
+waldo_image10=waldo_image10.resize((1000,1000),Image.Resampling.LANCZOS)
+
+photo10=ImageTk.PhotoImage(waldo_image10)
+
+waldo_image10_label=tk.Label(slide11, image=photo10)
+waldo_image10_label.image=photo10
+waldo_image10_label.pack(expand=True)
 
 
 
@@ -144,7 +173,21 @@ def go_to_slide6():
 
 def go_to_slide7():
     show_frame(slide7)
-    slide7.after(2000,lambda :show_frame(slide8))
+    slide7.after(2000,go_to_slide8)
+
+
+def go_to_slide8():
+    show_frame(slide8)
+    slide8.after(2000,go_to_slide9)
+
+def go_to_slide9():
+    show_frame(slide9)
+    slide9.after(2000,go_to_slide10)
+
+def go_to_slide10():
+    show_frame(slide10)
+    slide10.after(2000,lambda :show_frame(slide11))
+
 
 # defining a function for countdown
 
