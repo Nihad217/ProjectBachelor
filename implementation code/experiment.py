@@ -38,7 +38,7 @@ welcome.attributes('-fullscreen',True)
 
 label=tk.Label(slide1, text="Willkommen im Experiment!", font=("Segoe UI",30))
 label2=tk.Label(slide1, text="Deine Aufgaben ist nun Walter zu finden. Viel Glück!!!" ,font=("Segoe UI", 20))
-label3=tk.Label(slidePause,text="Du hast die Hälfte geschafft!!! Nun kannst du gerne 30 Sekunden pause machen",font=("Segoe UI",30))
+label3=tk.Label(slidePause,text="Du hast die Hälfte geschafft!!! Nun kannst du gerne 30 Sekunden pause machen und dann mit visual guidance",font=("Segoe UI",30))
 label.pack(expand=True)
 label3.pack(expand=True)
 
@@ -47,7 +47,7 @@ label3.pack(expand=True)
 
 # waldo's picture
 
-image= Image.open("waldo.jpg")
+image= Image.open("pictures/waldo.jpg")
 image=image.resize((350,350),Image.Resampling.LANCZOS)
 photo=ImageTk.PhotoImage(image)
 
@@ -66,7 +66,7 @@ countdown_label.pack(pady=10)
 
 
 # placing the pictures for the experiment
-waldo_image=Image.open("WhereIsWaldo2.jpg")
+waldo_image=Image.open("pictures/whereIsWaldo2.jpg")
 waldo_image= waldo_image.resize((1000,1000),Image.Resampling.LANCZOS)
 
 photo=ImageTk.PhotoImage(waldo_image)
@@ -75,14 +75,14 @@ waldo_image_label=tk.Label(slide2, image=photo)
 waldo_image_label.image=photo
 waldo_image_label.pack(expand=TRUE)
 
-waldo_image2=Image.open("whereIsWaldo.jpg")
+waldo_image2=Image.open("pictures/whereIsWaldo.jpg")
 photo2=ImageTk.PhotoImage(waldo_image2)
 
 waldo_image2_label=tk.Label(slide3, image=photo2)
 waldo_image2_label.image=photo2
 waldo_image2_label.pack(expand=TRUE)
 
-waldo_image3=Image.open("whereIsWaldo3.jpg")
+waldo_image3=Image.open("pictures/whereIsWaldo3.jpg")
 waldo_image3=waldo_image3.resize((1000,1000),Image.Resampling.LANCZOS)
 photo3=ImageTk.PhotoImage(waldo_image3)
 
@@ -90,7 +90,7 @@ waldo_image3_label=tk.Label(slide4, image=photo3)
 waldo_image3_label.image=photo3
 waldo_image3_label.pack(expand=True)
 
-waldo_image4=Image.open("whereIsWaldo4.jpg")
+waldo_image4=Image.open("pictures/whereIsWaldo4.jpg")
 waldo_image4=waldo_image4.resize((1000,1000),Image.Resampling.LANCZOS)
 photo4=ImageTk.PhotoImage(waldo_image4)
 
@@ -99,7 +99,7 @@ waldo_image4_label.image=photo4
 waldo_image4_label.pack(expand=True)
 
 
-waldo_image5=Image.open("whereIsWaldo5.jpg")
+waldo_image5=Image.open("pictures/whereIsWaldo5.jpg")
 waldo_image5=waldo_image5.resize((1000,1000),Image.Resampling.LANCZOS)
 photo5=ImageTk.PhotoImage(waldo_image5)
 
@@ -109,7 +109,7 @@ waldo_image5_label.pack(expand=True)
 
 
 
-waldo_image6=Image.open("whereIsWaldo6.jpg")
+waldo_image6=Image.open("pictures/whereIsWaldo6.jpg")
 waldo_image6=waldo_image6.resize((1000,1000),Image.Resampling.LANCZOS)
 photo6=ImageTk.PhotoImage(waldo_image6)
 
@@ -117,7 +117,7 @@ waldo_image6_label=tk.Label(slide7, image=photo6)
 waldo_image6_label.image=photo6
 waldo_image6_label.pack(expand=True)
 
-waldo_image7=Image.open("whereIsWaldo7.jpg")
+waldo_image7=Image.open("pictures/whereIsWaldo7.jpg")
 
 photo7=ImageTk.PhotoImage(waldo_image7)
 
@@ -125,7 +125,7 @@ waldo_image7_label=tk.Label(slide8, image=photo7)
 waldo_image7_label.image=photo7
 waldo_image7_label.pack(expand=True)
 
-waldo_image8=Image.open("whereIsWaldo8.jpg")
+waldo_image8=Image.open("pictures/whereIsWaldo8.jpg")
 waldo_image8=waldo_image8.resize((1000,1000),Image.Resampling.LANCZOS)
 
 photo8=ImageTk.PhotoImage(waldo_image8)
@@ -134,7 +134,7 @@ waldo_image8_label=tk.Label(slide9, image=photo8)
 waldo_image8_label.image=photo8
 waldo_image8_label.pack(expand=True)
 
-waldo_image9=Image.open("whereIsWaldo9.jpg")
+waldo_image9=Image.open("pictures/whereIsWaldo9.jpg")
 waldo_image9=waldo_image9.resize((1000,1000),Image.Resampling.LANCZOS)
 
 photo9=ImageTk.PhotoImage(waldo_image9)
@@ -143,7 +143,7 @@ waldo_image9_label=tk.Label(slide10, image=photo9)
 waldo_image9_label.image=photo9
 waldo_image9_label.pack(expand=True)
 
-waldo_image10=Image.open("whereIsWaldo10.jpg")
+waldo_image10=Image.open("pictures/whereIsWaldo10.jpg")
 waldo_image10=waldo_image10.resize((1000,1000),Image.Resampling.LANCZOS)
 
 photo10=ImageTk.PhotoImage(waldo_image10)
