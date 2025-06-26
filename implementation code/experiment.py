@@ -22,9 +22,10 @@ slide8=tk.Frame(welcome)
 slide9=tk.Frame(welcome)
 slide10=tk.Frame(welcome)
 slide11=tk.Frame(welcome)
+slidePause=tk.Frame(welcome)
 
 
-for frame in(slide1,slide2,slide3,slide4,slide5,slide6,slide7,slide8,slide9,slide10,slide11):
+for frame in(slide1,slide2,slide3,slide4,slide5,slide6,slide7,slide8,slide9,slide10,slide11,slidePause):
     frame.grid(row=0,column=0,sticky="nsew")
     welcome.rowconfigure(0, weight=1)
     welcome.columnconfigure(0, weight=1)
@@ -37,7 +38,11 @@ welcome.attributes('-fullscreen',True)
 
 label=tk.Label(slide1, text="Willkommen im Experiment!", font=("segoe UI",30))
 label2=tk.Label(slide1, text="Deine Aufgaben ist nun Walter zu finden. Viel Glück!!!" ,font=("segoe UI", 20))
+label3=tk.Label(slidePause,text="Du hast die Hälfte geschafft!!! Nun kannst du gerne 30 Sekunden pause machen",font=("segoe UI",30))
 label.pack(expand=True)
+label3.pack(expand=True)
+
+
 
 
 # waldo's picture
@@ -102,6 +107,8 @@ waldo_image5_label=tk.Label(slide6, image=photo5)
 waldo_image5_label.image=photo5
 waldo_image5_label.pack(expand=True)
 
+
+
 waldo_image6=Image.open("whereIsWaldo6.jpg")
 waldo_image6=waldo_image6.resize((1000,1000),Image.Resampling.LANCZOS)
 photo6=ImageTk.PhotoImage(waldo_image6)
@@ -165,7 +172,11 @@ def go_to_slide4():
 
 def go_to_slide5():
     show_frame(slide5)
-    slide5.after(2000,go_to_slide6)
+    slide5.after(2000,go_to_slide5p)
+
+def go_to_slide5p():
+    show_frame(slidePause)
+    slidePause.after(2000,go_to_slide6)
 
 def go_to_slide6():
     show_frame(slide6)
