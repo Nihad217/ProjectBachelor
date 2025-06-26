@@ -36,9 +36,9 @@ welcome.attributes('-fullscreen',True)
 
 # welcoming label
 
-label=tk.Label(slide1, text="Willkommen im Experiment!", font=("segoe UI",30))
-label2=tk.Label(slide1, text="Deine Aufgaben ist nun Walter zu finden. Viel Glück!!!" ,font=("segoe UI", 20))
-label3=tk.Label(slidePause,text="Du hast die Hälfte geschafft!!! Nun kannst du gerne 30 Sekunden pause machen",font=("segoe UI",30))
+label=tk.Label(slide1, text="Willkommen im Experiment!", font=("Segoe UI",30))
+label2=tk.Label(slide1, text="Deine Aufgaben ist nun Walter zu finden. Viel Glück!!!" ,font=("Segoe UI", 20))
+label3=tk.Label(slidePause,text="Du hast die Hälfte geschafft!!! Nun kannst du gerne 30 Sekunden pause machen",font=("Segoe UI",30))
 label.pack(expand=True)
 label3.pack(expand=True)
 
@@ -172,15 +172,15 @@ def go_to_slide4():
 
 def go_to_slide5():
     show_frame(slide5)
-    slide5.after(2000,go_to_slide5p)
-
-def go_to_slide5p():
-    show_frame(slidePause)
-    slidePause.after(2000,go_to_slide6)
+    slide5.after(2000,go_to_slide6)
 
 def go_to_slide6():
     show_frame(slide6)
-    slide6.after(2000,go_to_slide7)
+    slide6.after(2000,go_to_slide6p)
+
+def go_to_slide6p():
+    show_frame(slidePause)
+    slidePause.after(2000,go_to_slide7)
 
 def go_to_slide7():
     show_frame(slide7)
