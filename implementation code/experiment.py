@@ -37,7 +37,7 @@ welcome.attributes('-fullscreen',True)
 # welcoming label
 
 label=tk.Label(slide1, text="Willkommen im Experiment!", font=("Segoe UI",30))
-label2=tk.Label(slide1, text="Deine Aufgaben ist nun Walter zu finden. Viel Glück!!!" ,font=("Segoe UI", 20))
+label2=tk.Label(slide1, text="Deine Aufgabe ist es auf Bildern Walter zu finden. Vor jedem Bild erscheint ein Countdown, \n der von 3 runterzählt. Direkt nach dem Countdown erscheint das nächste Bild. Viel Glück!!!" ,font=("Segoe UI", 18))
 label3=tk.Label(slidePause,text="Du hast die Hälfte geschafft!!! Nun kannst du gerne 30 Sekunden pause machen und dann mit visual guidance",font=("Segoe UI",20))
 label.pack(expand=True)
 label3.pack(expand=True)
