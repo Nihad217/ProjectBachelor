@@ -1,54 +1,87 @@
 import time
 import tkinter as tk
 from tkinter import *
-
 from PIL import Image, ImageTk
+import random
 
 
 def show_frame(frame):
     frame.tkraise()
 # a frame for welcoming
 welcome = Tk()
-welcome.title("The visual guidance experiment! ")
+welcome.title("The visual guidance experiment!")
+welcome.attributes('-fullscreen',True)
 
-slide1=tk.Frame(welcome)
-slide2=tk.Frame(welcome)
-slide3=tk.Frame(welcome)
-slide4=tk.Frame(welcome)
-slide5=tk.Frame(welcome)
-slide6=tk.Frame(welcome)
-slide7=tk.Frame(welcome)
-slide8=tk.Frame(welcome)
-slide9=tk.Frame(welcome)
-slide10=tk.Frame(welcome)
-slide11=tk.Frame(welcome)
+def show_frame(frame):
+    frame.tkraise()
+
+# define the slides for the experiment
+slides={}
 slidePause=tk.Frame(welcome)
+slideCountdown=tk.Frame(welcome)
+slideEnd=tk.Frame(welcome)
+
+# Create the frames with a for loop
+for i in range(1,13):
+    slides[f'slide{i}']=tk.Frame(welcome)
 
 
-for frame in(slide1,slide2,slide3,slide4,slide5,slide6,slide7,slide8,slide9,slide10,slide11,slidePause):
+
+for frame in list(slides.values())+[slidePause, slideCountdown,slideEnd]:
     frame.grid(row=0,column=0,sticky="nsew")
     welcome.rowconfigure(0, weight=1)
     welcome.columnconfigure(0, weight=1)
 
+# Global var
+image_orders=list(range(2,12))
+random.shuffle(image_orders)
+current_index=0
+slide1=slides['slide1']
 
-# make a fullscreen view
-welcome.attributes('-fullscreen',True)
+# defining a countdown system
+# Developing an automatic switch to the next picture after delay
+def start_counting(seconds=3):
+    if seconds > 0:
+        countdown_label.config(text=str(seconds))
+        slideCountdown.after(1000,lambda:start_counting(seconds-1))
 
-# welcoming label
+    else:
+        global current_index
+        if current_index< len(image_orders):
+            slide_name = f'slide{image_orders[current_index]}'
+            show_frame(slides[slide_name])
+            slideCountdown.after(1000,lambda :show_frame(slidePause))
+            current_index+=1
+        else:
+
+            show_frame(slideEnd)
+
+# Pause slide logic for giving the participants momentary pause
+
+pause_label = tk.Label(slidePause, text="Zeit ist um. Nun kannst du Pause machen und danach fortfahren", font=("Segoe UI", 18))
+pause_label.pack(pady=30)
+countdown_label =tk.Label(slideCountdown, text="", font=("Segoe UI",40),fg="red")
+countdown_label.pack(expand=True)
+pause_button=tk.Button(slidePause,text="Weiter",font=("Segoe UI",20),command=lambda:[show_frame(slideCountdown),start_counting()])
+pause_button.pack(expand=True)
+
+#slide 1 starting button
+start_button= tk.Button(slide1,text="Starten", font=("Segoe UI",20),command=lambda:[show_frame(slideCountdown), start_counting()])
+start_button.pack(side="bottom" ,pady=20)
+
+#slide 1 settings
+
 
 label=tk.Label(slide1, text="Willkommen im Experiment!", font=("Segoe UI",30))
 label2=tk.Label(slide1, text="Deine Aufgabe ist es auf Bildern Walter zu finden. Vor jedem Bild erscheint ein Countdown, \n der von 3 runterzählt. Direkt nach dem Countdown erscheint das nächste Bild. Viel Glück!!!" ,font=("Segoe UI", 18))
-label3=tk.Label(slidePause,text="Du hast die Hälfte geschafft!!! Nun kannst du gerne 30 Sekunden pause machen und dann mit visual guidance",font=("Segoe UI",20))
 label.pack(expand=True)
-label3.pack(expand=True)
-
 
 
 
 # waldo's picture
 
 image= Image.open("pictures/waldo.jpg")
-image=image.resize((350,350),Image.Resampling.LANCZOS)
+image=image.resize((350,350),Image.LANCZOS)
 photo=ImageTk.PhotoImage(image)
 
 image_label=tk.Label(slide1,image=photo)
@@ -57,170 +90,30 @@ image_label.pack(expand=TRUE)
 
 label2.pack(expand=True)
 
-# creating a start button
 
-start_button= tk.Button(slide1,text="Starten", font=("Segoe UI",16),command=lambda:start_counting(3))
-start_button.pack(pady=20)
-countdown_label =tk.Label(slide1, text="", font=("Segoe UI",40),fg="red")
-countdown_label.pack(pady=10)
 
 
 # placing the pictures for the experiment
-waldo_image=Image.open("pictures/whereIsWaldo2.jpg")
-waldo_image= waldo_image.resize((1000,1000),Image.Resampling.LANCZOS)
+for i in range(2, 12):
+        try:
+            image_path = f"pictures/whereIsWaldo{i-1}.jpg"
+            img = Image.open(image_path).resize((1000, 1000), Image.LANCZOS)
+            ph = ImageTk.PhotoImage(img)
+            label = tk.Label(slides[f'slide{i}'], image=ph)
+            label.image = ph
+            label.pack(expand=True)
+        except FileNotFoundError:
+            print(f"Bild {image_path} nicht gefunden!")
 
-photo=ImageTk.PhotoImage(waldo_image)
-
-waldo_image_label=tk.Label(slide2, image=photo)
-waldo_image_label.image=photo
-waldo_image_label.pack(expand=TRUE)
-
-waldo_image2=Image.open("pictures/whereIsWaldo.jpg")
-photo2=ImageTk.PhotoImage(waldo_image2)
-
-waldo_image2_label=tk.Label(slide3, image=photo2)
-waldo_image2_label.image=photo2
-waldo_image2_label.pack(expand=TRUE)
-
-waldo_image3=Image.open("pictures/whereIsWaldo3.jpg")
-waldo_image3=waldo_image3.resize((1000,1000),Image.Resampling.LANCZOS)
-photo3=ImageTk.PhotoImage(waldo_image3)
-
-waldo_image3_label=tk.Label(slide4, image=photo3)
-waldo_image3_label.image=photo3
-waldo_image3_label.pack(expand=True)
-
-waldo_image4=Image.open("pictures/whereIsWaldo4.jpg")
-waldo_image4=waldo_image4.resize((1000,1000),Image.Resampling.LANCZOS)
-photo4=ImageTk.PhotoImage(waldo_image4)
-
-waldo_image4_label=tk.Label(slide5, image=photo4)
-waldo_image4_label.image=photo4
-waldo_image4_label.pack(expand=True)
-
-
-waldo_image5=Image.open("pictures/whereIsWaldo5.jpg")
-waldo_image5=waldo_image5.resize((1000,1000),Image.Resampling.LANCZOS)
-photo5=ImageTk.PhotoImage(waldo_image5)
-
-waldo_image5_label=tk.Label(slide6, image=photo5)
-waldo_image5_label.image=photo5
-waldo_image5_label.pack(expand=True)
-
-
-
-waldo_image6=Image.open("pictures/whereIsWaldo6.jpg")
-waldo_image6=waldo_image6.resize((1000,1000),Image.Resampling.LANCZOS)
-photo6=ImageTk.PhotoImage(waldo_image6)
-
-waldo_image6_label=tk.Label(slide7, image=photo6)
-waldo_image6_label.image=photo6
-waldo_image6_label.pack(expand=True)
-
-waldo_image7=Image.open("pictures/whereIsWaldo7.jpg")
-
-photo7=ImageTk.PhotoImage(waldo_image7)
-
-waldo_image7_label=tk.Label(slide8, image=photo7)
-waldo_image7_label.image=photo7
-waldo_image7_label.pack(expand=True)
-
-waldo_image8=Image.open("pictures/whereIsWaldo8.jpg")
-waldo_image8=waldo_image8.resize((1000,1000),Image.Resampling.LANCZOS)
-
-photo8=ImageTk.PhotoImage(waldo_image8)
-
-waldo_image8_label=tk.Label(slide9, image=photo8)
-waldo_image8_label.image=photo8
-waldo_image8_label.pack(expand=True)
-
-waldo_image9=Image.open("pictures/whereIsWaldo9.jpg")
-waldo_image9=waldo_image9.resize((1000,1000),Image.Resampling.LANCZOS)
-
-photo9=ImageTk.PhotoImage(waldo_image9)
-
-waldo_image9_label=tk.Label(slide10, image=photo9)
-waldo_image9_label.image=photo9
-waldo_image9_label.pack(expand=True)
-
-waldo_image10=Image.open("pictures/whereIsWaldo10.jpg")
-waldo_image10=waldo_image10.resize((1000,1000),Image.Resampling.LANCZOS)
-
-photo10=ImageTk.PhotoImage(waldo_image10)
-
-waldo_image10_label=tk.Label(slide11, image=photo10)
-waldo_image10_label.image=photo10
-waldo_image10_label.pack(expand=True)
-
-
-
-
-# Developing an automatic switch to the next picture after delay through slide3
-
-def go_to_slide2():
-    show_frame(slide2)
-    slide2.after(2000,go_to_slide3)
-
-
-def go_to_slide3():
-    show_frame(slide3)
-    slide3.after(2000,go_to_slide4)
-
-def go_to_slide4():
-    show_frame(slide4)
-    slide4.after(2000,go_to_slide5)
-
-def go_to_slide5():
-    show_frame(slide5)
-    slide5.after(2000,go_to_slide6)
-
-def go_to_slide6():
-    show_frame(slide6)
-    slide6.after(2000,go_to_slide6p)
-
-def go_to_slide6p():
-    show_frame(slidePause)
-    slidePause.after(2000,go_to_slide7)
-
-def go_to_slide7():
-    show_frame(slide7)
-    slide7.after(2000,go_to_slide8)
-
-
-def go_to_slide8():
-    show_frame(slide8)
-    slide8.after(2000,go_to_slide9)
-
-def go_to_slide9():
-    show_frame(slide9)
-    slide9.after(2000,go_to_slide10)
-
-def go_to_slide10():
-    show_frame(slide10)
-    slide10.after(2000,lambda :show_frame(slide11))
-
-
-# defining a function for countdown
-
-def start_counting(seconds):
-    if seconds >= 0:
-        countdown_label.config(text=str(seconds))
-        slide1.after(1000,lambda:start_counting(seconds-1))
-
-    else:
-        countdown_label.config(text="")
-        go_to_slide2()
-
-
+end_label=tk.Label(slideEnd,text="Der letzte Timer war ein Witz.\n Du hast es geschafft! Danke für deine Teilnahme!!!",font=("Segoe UI",30),fg="green")
+end_label.pack(expand=True)
 
 # exiting fullscreen mode with esc
 
 def endFullscreen(event):
     welcome.attributes("-fullscreen",False)
 welcome.bind("<Escape>", endFullscreen)
-
 show_frame(slide1)
-
 welcome.mainloop()
 
 
