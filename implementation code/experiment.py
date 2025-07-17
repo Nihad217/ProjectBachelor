@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import random
 
 
+
 def show_frame(frame):
     frame.tkraise()
 # a frame for welcoming

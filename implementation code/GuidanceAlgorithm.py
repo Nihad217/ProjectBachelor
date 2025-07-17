@@ -5,12 +5,37 @@ from pupil_labs.realtime_api.simple import discover_one_device
 from pupil_labs.realtime_api.streaming.gaze import receive_gaze_data
 import asyncio
 
-from pyttsx3 import engine
+# Text-to-speech engine
+engine=pyttsx3.init()
 
+
+# Look for a device on the network.
+print("Looking for a device...")
+device = discover_one_device(max_search_duration_seconds=10)
+if device is None:
+    print("No device found.")
+    raise SystemExit()
+    print(f"Connected to {device.serial_number_glasses}. Press Ctrl-C to stop.")
+
+
+while True:
+    # receive_gaze_datum() will return the next available gaze datum
+    # or block until one becomes available.
+    gaze = device.receive_gaze_datum()
+    # The gaze datum is a named tuple containing x, y, worn, and timestamp.
+    # We can access these values as attributes.
+    print(
+        f"Timestamp: {gaze.timestamp_unix_seconds:.3f} | "
+        f"Gaze (x,y): ({gaze.x:.2f}, {gaze.y:.2f}) | "
+        f"Worn: {gaze.worn}"
+    )
+
+
+# Stream gaze data.
 # build a timer
 
 start_timer= time.time()
-threshold_sec= 60
+threshold_sec= 20
 
 #target that needs to be modified
 
@@ -37,16 +62,22 @@ def direction(gaze, target):
 
 
 async def main():
-    rtsp_url="rtsp://192.168.1.100:8554/gaze" #will be modified when testing
     global start
-    async for gaze in receive_gaze_data(rtsp_url):
 
+
+    while True:
+
+
+     gaze=device.receive_gaze_datum()
      gaze_pos=(gaze.x,gaze.y)
      dist=distance(gaze_pos,target_pos)
 
      if dist(gaze_pos,target_pos) < 0.05:
 
         start=time.time()
+        print("Ziel gefunden")
+        engine.say("Ziel gefunden")
+        engine.runAndWait()
      else:
         if time.time()-start > threshold_sec:
 
@@ -56,14 +87,9 @@ async def main():
             engine.runAndWait()
             start=time.time()
 
-
-
-
-
-
 # Start and turn text to speech on
 
-asyncio.run(main())
+_
 
 
 
