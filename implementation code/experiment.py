@@ -17,13 +17,13 @@ import threading
 # Text-to-speech engine
 engine=pyttsx3.init()
 threshold_sec= 20
-screen_size=(2880,1920)
+screen_size=(1920,1200)
 
 
 
 #target that needs to be modified
 
-target_pos=(800,1900)
+target_pos=(800,800)
 
 
 
@@ -32,13 +32,15 @@ class MarkerWindow(QWidget):
         super().__init__()
         self.setWindowFlag(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.X11BypassWindowManagerHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.marker_size = 100
+        self.marker_size = 150
         self.pixmaps = [self.createMarker(i) for i in range(4)]
         self.visibleMarkerIds = []
         screen = QApplication.primaryScreen().geometry()
         self.setGeometry(0, 0, screen.width(), screen.height())
 
-
+    def update_marker_visibility(self, visible_ids):
+        self.visibleMarkerIds = visible_ids
+        self.repaint()
     def createMarker(self, marker_id):
         marker = marker_generator.generate_marker(marker_id, flip_x=True, flip_y=True)
         image = QImage(marker.shape[1], marker.shape[0], QImage.Format_Mono)
@@ -92,6 +94,7 @@ class ExperimentApp:
         self.hint_cooldown=threshold_sec
         self.is_hint_active=False
         self.target_found=False
+        self.gaze = None
         self.hysteresis=25
         self.device=discover_one_device(max_search_duration_seconds=10)
         calibration=self.device.get_calibration()
@@ -116,8 +119,9 @@ class ExperimentApp:
         }
 
         self.gazeMapper.clear_surfaces()
-        self.surface=self.gazeMapper.add_surface(marker_verts,screen_size)
+        self.surface = self.gazeMapper.add_surface(marker_verts,screen_size)
         self.get_gaze_data()
+        print(marker_verts)
 
 
         if self.device is None:
@@ -140,21 +144,32 @@ class ExperimentApp:
         self.show_frame(self.slides['slide1'])
         self.welcome.mainloop()
     def get_gaze_data(self):
-        global start_timer
-        self.gaze = self.device.receive_gaze_datum()
+        frameAndGaze = self.device.receive_matched_scene_video_frame_and_gaze(timeout_seconds=0.5)
 
+        if frameAndGaze is None:
+            print("keine gaze-Daten empfangen! ")
+            self.welcome.after(500,self.get_gaze_data)
+            return
+
+        frame,gaze=frameAndGaze
+        result = self.gazeMapper.process_frame(frame,gaze)
+        markerIds = [int(marker.uid.split(':')[-1]) for marker in result.markers]
+
+        print(markerIds)
+        if self.surface.uid in result.mapped_gaze:
+            for surface_gaze in result.mapped_gaze[self.surface.uid]:
+                self.gaze = surface_gaze
 
         if self.gaze is None:
-
-         self.welcome.after(100,self.get_gaze_data)
-         return
+            self.welcome.after(500,self.get_gaze_data)
+            return
 
         # The gaze datum is a named tuple containing x, y, worn, and timestamp.
         # We can access these values as attributes.
         print(
-            f"Timestamp: {self.gaze.timestamp_unix_seconds:.3f} | "
+         #   f"Timestamp: {self.gaze.timestamp_unix_seconds:.3f} | "
             f"Gaze (x,y): ({self.gaze.x:.2f}, {self.gaze.y:.2f}) | "
-            f"Worn: {self.gaze.worn}"
+           # f"Worn: {self.gaze.worn}"
         )
         raw_gx, raw_gy = float(self.gaze.x), float(self.gaze.y)
         sx, sy = screen_size
@@ -165,37 +180,29 @@ class ExperimentApp:
             scale_y = raw_gy / sy if sy != 0 else 1.0
             scale = max(scale_x, scale_y, 1.0)
             gaze_pos = (raw_gx / scale, raw_gy / scale)
+
         dist=self.distance(gaze_pos,target_pos)
 ### big issues here to solve
         if dist < 10:
             if not self.target_found:
                 print("Ziel gefunden")
-                self.speak_async("Ziel gefunden") 
+                self.speak_async("Ziel gefunden")
+                print(self.start_timer)
             self.target_found=True
-            self.start_timer=time.time()
-            self.last_hint_time=time.time()
-
-
         else:
-
+            # move to code where next slide
             if self.target_found and dist > (self.found_radius + self.hysteresis):
                 self.target_found = False
             if not self.target_found:
                 elapsed = time.time() - self.start_timer
                 time_since_last_hint = time.time() - self.last_hint_time
-            print("dwad")
-            if elapsed >= threshold_sec and not self.is_hint_active and time_since_last_hint >= self.hint_cooldown:
-                msg= self.direction(gaze_pos, target_pos)
-                if msg:
-                    print(f"Hinweis: {msg}")
-                    with self.hint_lock:
-                        self.is_hint_active = True
+                print("dwad")
+                if elapsed >= threshold_sec and time_since_last_hint >= self.hint_cooldown: #and not self.hint_active
+                    msg = self.direction(gaze_pos, target_pos)
+                    if msg:
+                        print(f"Hinweis: {msg}")
                         self.last_hint_time = time.time()
-                    def hint_completed():
-                        with self.hint_lock:
-                            self.is_hint_active = False
-                        self.start_timer = time.time()
-                    self.speak_async(msg,hint_completed)
+                        self.speak_async(msg)
 
 
 
@@ -204,7 +211,7 @@ class ExperimentApp:
 
     def calibrate_glasses(self):
         print("Kalibrierung gestartet")
-        frameAndGaze=self.device.receive_matched_scene_video_frame_and_gaze(timeout_seconds=1/15)
+        frameAndGaze=self.device.receive_matched_scene_video_frame_and_gaze(timeout_seconds=0.5)
 
         if frameAndGaze is None:
             print("keine gaze-Daten empfangen! ")
@@ -212,10 +219,12 @@ class ExperimentApp:
 
         frame,gaze=frameAndGaze
         result=self.gazeMapper.process_frame(frame,gaze)
+
         if self.surface.uid in result.mapped_gaze:
+            print("dd")
             for surface_gaze in result.mapped_gaze[self.surface.uid]:
-                self.offset_x = 0.487 - surface_gaze.x
-                self.offset_y=0.370-surface_gaze.y
+                self.offset_x = 0#0.487 - surface_gaze.x
+                self.offset_y= 0# 0.370 -surface_gaze.y
         print("Kalibrierung fertig!")
 
     def calibrate_and_continue(self, next_frame):
@@ -226,6 +235,10 @@ class ExperimentApp:
     def finish_calibration(self, next_frame):
         self.calibrate_glasses()
         self.show_frame(next_frame)
+
+        self.start_timer = time.time()
+        self.last_hint_time=time.time()
+        self.target_found = False
         self.start_counting()
 
     def create_frames(self):
