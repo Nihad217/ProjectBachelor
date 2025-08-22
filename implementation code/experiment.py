@@ -16,16 +16,8 @@ import threading
 
 # Text-to-speech engine
 engine=pyttsx3.init()
-threshold_sec= 20
-screen_size=(1920,1200)
-
-
-
-#target that needs to be modified
-
-target_pos=(800,800)
-
-
+threshold_sec= 10
+screen_size=(2880,1920)
 
 class MarkerWindow(QWidget):
     def __init__(self):
@@ -51,7 +43,7 @@ class MarkerWindow(QWidget):
         return QPixmap.fromImage(image)
 
     def getCornerRect(self, cornerIdx):
-        padding = 5
+        padding = 30
         if cornerIdx == 0:
             # The first parameter is x and the second is y
             return QRect(padding, padding, self.marker_size, self.marker_size)
@@ -68,7 +60,7 @@ class MarkerWindow(QWidget):
         for cornerIdx in range(4):
             cornerRect = self.getCornerRect(cornerIdx)
             if cornerIdx not in self.visibleMarkerIds:
-                painter.fillRect(cornerRect.marginsAdded(QMargins(5, 5, 5, 5)), QColor(255, 0, 0))
+                painter.fillRect(cornerRect.marginsAdded(QMargins(25, 25, 25, 25)), QColor(127,127,127))
             painter.drawPixmap(cornerRect, self.pixmaps[cornerIdx])
             painter.fillRect(cornerRect, QColor(0, 0, 0, 128))
 
@@ -95,33 +87,49 @@ class ExperimentApp:
         self.is_hint_active=False
         self.target_found=False
         self.gaze = None
-        self.hysteresis=25
-        self.device=discover_one_device(max_search_duration_seconds=10)
-        calibration=self.device.get_calibration()
+        self.device= discover_one_device(max_search_duration_seconds=10)
+        calibration= self.device.get_calibration()
         self.gazeMapper=GazeMapper(calibration)
         self.get_gaze_data()
         self.surface=None
         self.offset_x=0
         self.offset_y=0
+        self.target_pos=(0,0)
+        self.found_radius = 200
+        self.assistance_enabled= False
+        self.targets={
+
+            "slide2":(297.67,119.71),
+            "slide3":(67.71,433.93),
+            "slide4":(558,163.71),
+            "slide5":(310.29,128.13),
+            "slide6":(256.07,422.03),
+            "slide7":(57.19,375),
+            "slide8":(420.94,210.48),
+            "slide9":(522.98,466.05),
+            "slide10":(297.95,538.69),
+            "slide11":(481.99,57.26),
+
+        }
 
         marker_size=self.marker_window.marker_size
 
         marker_verts = {
-        0: [(5, 5), (5+marker_size, 5), (5+marker_size, 5+marker_size), (5, 5+marker_size)],
-        1: [(screen_size[0]-5-marker_size, 5), (screen_size[0]-5, 5),
-        (screen_size[0]-5, 5+marker_size), (screen_size[0]-5-marker_size, 5+marker_size)],
-        2: [(screen_size[0]-5-marker_size, screen_size[1]-5-marker_size),
-        (screen_size[0]-5, screen_size[1]-5-marker_size),
-        (screen_size[0]-5, screen_size[1]-5),
-        (screen_size[0]-5-marker_size, screen_size[1]-5)],
-        3: [(5, screen_size[1]-5-marker_size), (5+marker_size, screen_size[1]-5-marker_size),
-        (5+marker_size, screen_size[1]-5), (5, screen_size[1]-5)]
+        0: [(30, 30), (30+marker_size, 30), (30+marker_size, 30+marker_size), (30, 30+marker_size)],
+        1: [(screen_size[0]-30-marker_size, 30), (screen_size[0]-30, 30),
+        (screen_size[0]-30, 30+marker_size), (screen_size[0]-30-marker_size, 30+marker_size)],
+        2: [(screen_size[0]-30-marker_size, screen_size[1]-30-marker_size),
+        (screen_size[0]-30, screen_size[1]-30-marker_size),
+        (screen_size[0]-30, screen_size[1]-30),
+        (screen_size[0]-30-marker_size, screen_size[1]-30)],
+        3: [(30, screen_size[1]-30-marker_size), (30+marker_size, screen_size[1]-30-marker_size),
+        (30+marker_size, screen_size[1]-30), (30, screen_size[1]-30)]
         }
 
         self.gazeMapper.clear_surfaces()
         self.surface = self.gazeMapper.add_surface(marker_verts,screen_size)
         self.get_gaze_data()
-        print(marker_verts)
+
 
 
         if self.device is None:
@@ -145,7 +153,6 @@ class ExperimentApp:
         self.welcome.mainloop()
     def get_gaze_data(self):
         frameAndGaze = self.device.receive_matched_scene_video_frame_and_gaze(timeout_seconds=0.5)
-
         if frameAndGaze is None:
             print("keine gaze-Daten empfangen! ")
             self.welcome.after(500,self.get_gaze_data)
@@ -155,50 +162,43 @@ class ExperimentApp:
         result = self.gazeMapper.process_frame(frame,gaze)
         markerIds = [int(marker.uid.split(':')[-1]) for marker in result.markers]
 
-        print(markerIds)
         if self.surface.uid in result.mapped_gaze:
             for surface_gaze in result.mapped_gaze[self.surface.uid]:
                 self.gaze = surface_gaze
 
         if self.gaze is None:
             self.welcome.after(500,self.get_gaze_data)
+            print("keine gaze-Daten gefunden! ")
             return
 
         # The gaze datum is a named tuple containing x, y, worn, and timestamp.
         # We can access these values as attributes.
         print(
-         #   f"Timestamp: {self.gaze.timestamp_unix_seconds:.3f} | "
             f"Gaze (x,y): ({self.gaze.x:.2f}, {self.gaze.y:.2f}) | "
-           # f"Worn: {self.gaze.worn}"
         )
         raw_gx, raw_gy = float(self.gaze.x), float(self.gaze.y)
         sx, sy = screen_size
-        if 0.0 <= raw_gx <= 1.0 and 0.0 <= raw_gy <= 1.0:
-            gaze_pos = (raw_gx * sx, raw_gy * sy)
-        else:
-            scale_x = raw_gx / sx if sx != 0 else 1.0
-            scale_y = raw_gy / sy if sy != 0 else 1.0
-            scale = max(scale_x, scale_y, 1.0)
-            gaze_pos = (raw_gx / scale, raw_gy / scale)
+        gaze_pos = ((raw_gx+self.offset_x) * sx, (raw_gy+self.offset_y) * sy)
 
-        dist=self.distance(gaze_pos,target_pos)
+        dist=self.distance(gaze_pos,self.target_pos)
 ### big issues here to solve
-        if dist < 10:
+        if dist < self.found_radius:
             if not self.target_found:
                 print("Ziel gefunden")
                 self.speak_async("Ziel gefunden")
-                print(self.start_timer)
+                needed_time = time.time()-self.start_timer
+                print("Gefunden in : " + str(needed_time))
             self.target_found=True
         else:
             # move to code where next slide
-            if self.target_found and dist > (self.found_radius + self.hysteresis):
+            if self.target_found and dist > (self.found_radius):
                 self.target_found = False
             if not self.target_found:
                 elapsed = time.time() - self.start_timer
                 time_since_last_hint = time.time() - self.last_hint_time
                 print("dwad")
-                if elapsed >= threshold_sec and time_since_last_hint >= self.hint_cooldown: #and not self.hint_active
-                    msg = self.direction(gaze_pos, target_pos)
+                if self.assistance_enabled and elapsed >= threshold_sec and time_since_last_hint >= self.hint_cooldown : #and not self.hint_active
+                    msg = self.direction(gaze_pos, self.target_pos) # hier ist irgendwas
                     if msg:
                         print(f"Hinweis: {msg}")
                         self.last_hint_time = time.time()
@@ -223,8 +223,8 @@ class ExperimentApp:
         if self.surface.uid in result.mapped_gaze:
             print("dd")
             for surface_gaze in result.mapped_gaze[self.surface.uid]:
-                self.offset_x = 0#0.487 - surface_gaze.x
-                self.offset_y= 0# 0.370 -surface_gaze.y
+                self.offset_x = 0.501 - surface_gaze.x
+                self.offset_y=  0.465 -surface_gaze.y
         print("Kalibrierung fertig!")
 
     def calibrate_and_continue(self, next_frame):
@@ -269,7 +269,7 @@ class ExperimentApp:
             photo = ImageTk.PhotoImage(image)
             image_label = Label(self.slides['slide1'], image=photo)
             image_label.image = photo
-            image_label.pack(expand=True)
+            image_label.pack(expand=False)
         except FileNotFoundError:
             print("Beispielbild nicht gefunden!")
 
@@ -298,7 +298,7 @@ class ExperimentApp:
         for i in range(2, 12):
             try:
                 image_path = f"pictures/whereIsWaldo{i-1}.jpg"
-                img = Image.open(image_path).resize((2200, 2000))
+                img = Image.open(image_path).resize((2200,1920))
                 ph = ImageTk.PhotoImage(img)
                 label = Label(self.slides[f'slide{i}'], image=ph)
                 label.image = ph
@@ -316,8 +316,18 @@ class ExperimentApp:
         else:
             if self.current_index < len(self.image_orders):
                 slide_name = f'slide{self.image_orders[self.current_index]}'
+                if slide_name in self.targets:
+                    self.target_pos = self.targets[slide_name]
+                    print(f"Target für {slide_name}: {self.target_pos}")
+                else:
+                    self.target_pos = None
+                if self.current_index < 3:
+                    self.assistance_enabled = False
+                else:
+                    self.assistance_enabled = True
+                    print(f"Assistenz aktiv: {self.assistance_enabled}")
                 self.show_frame(self.slides[slide_name])
-                self.slideCountdown.after(25000, lambda: self.show_frame(self.slidePause))
+                self.slideCountdown.after(15000, lambda: self.show_frame(self.slidePause))
                 self.current_index += 1
             else:
                 self.show_frame(self.slideEnd)
