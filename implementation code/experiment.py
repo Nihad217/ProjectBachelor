@@ -1,7 +1,7 @@
 import sys
 import random
 from PIL import Image, ImageTk
-from tkinter import Tk, Frame, Label, Button
+from tkinter import Tk, Frame, Label, Button, Canvas, BOTH
 from PySide6.QtCore import Qt, QRect, QMargins
 from PySide6.QtGui import QPainter, QColor, QPixmap, QImage
 from PySide6.QtWidgets import QApplication, QWidget
@@ -17,14 +17,14 @@ import threading
 # Text-to-speech engine
 engine=pyttsx3.init()
 threshold_sec= 10
-screen_size=(2880,1920)
+screen_size=(1280,960)
 
 class MarkerWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowFlag(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.X11BypassWindowManagerHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.marker_size = 150
+        self.marker_size = 125
         self.pixmaps = [self.createMarker(i) for i in range(4)]
         self.visibleMarkerIds = []
         screen = QApplication.primaryScreen().geometry()
@@ -95,21 +95,24 @@ class ExperimentApp:
         self.offset_x=0
         self.offset_y=0
         self.target_pos=(0,0)
-        self.found_radius = 200
+        self.found_radius = 50
         self.assistance_enabled= False
-        self.targets={
+        self.image_disappeared=False
 
-            "slide2":(1431,382),
-            "slide3":(586,1387),
-            "slide4":(2384,521),
-            "slide5":(1483,411),
-            "slide6":(1281,1351),
-            "slide7":(555,1196),
-            "slide8":(1880,675),
-            "slide9":(2255,1488),
-            "slide10":(1431,1721),
-            "slide11":(2110,178),
+        self.canvas={
 
+        }
+        self.targets = {
+            "slide2": (1431 / 2880 * screen_size[0], 382 / 1920 * screen_size[1]),
+            "slide3": (586 / 2880 * screen_size[0], 1387 / 1920 * screen_size[1]),
+            "slide4": (2384 / 2880 * screen_size[0], 521 / 1920 * screen_size[1]),
+            "slide5": (1483 / 2880 * screen_size[0], 411 / 1920 * screen_size[1]),
+            "slide6": (1281 / 2880 * screen_size[0], 1351 / 1920 * screen_size[1]),
+            "slide7": (555 / 2880 * screen_size[0], 1196 / 1920 * screen_size[1]),
+            "slide8": (1880 / 2880 * screen_size[0], 675 / 1920 * screen_size[1]),
+            "slide9": (2255 / 2880 * screen_size[0], 1488 / 1920 * screen_size[1]),
+            "slide10": (1431 / 2880 * screen_size[0], 1721 / 1920 * screen_size[1]),
+            "slide11": (2110 / 2880 * screen_size[0], 178 / 1920 * screen_size[1]),
         }
 
         marker_size=self.marker_window.marker_size
@@ -176,9 +179,17 @@ class ExperimentApp:
         print(
             f"Gaze (x,y): ({self.gaze.x:.2f}, {self.gaze.y:.2f}) | "
         )
+
         raw_gx, raw_gy = float(self.gaze.x), float(self.gaze.y)
         sx, sy = screen_size
-        gaze_pos = ((raw_gx+self.offset_x) * sx, (raw_gy+self.offset_y) * sy)
+        gaze_pos = ((raw_gx-self.offset_x) * sx,sy - (raw_gy-self.offset_y) * sy)
+        #gaze_pos = ( (raw_gx) * sx, sy - (raw_gy) * sy)
+        slide_name = f'slide{self.image_orders[self.current_index-1]}'
+        self.canvas[slide_name].create_oval(gaze_pos[0]-10,gaze_pos[1]-10,gaze_pos[0]+10,(gaze_pos[1]+10),fill="yellow")
+
+        w_x, w_y = (0.50) * sx, sy - (0.45) * sy
+        slide_name = f'slide{self.image_orders[self.current_index-1]}'
+        self.canvas[slide_name].create_oval(w_x-10,w_y-10,w_x+10,(w_y+10),fill="black")
 
         dist=self.distance(gaze_pos,self.target_pos)
 ### big issues here to solve
@@ -188,6 +199,7 @@ class ExperimentApp:
                 self.speak_async("Ziel gefunden")
                 needed_time = time.time()-self.start_timer
                 print("Gefunden in : " + str(needed_time))
+
             self.target_found=True
         else:
             # move to code where next slide
@@ -196,8 +208,8 @@ class ExperimentApp:
             if not self.target_found:
                 elapsed = time.time() - self.start_timer
                 time_since_last_hint = time.time() - self.last_hint_time
-                print("dwad")
-                if self.assistance_enabled and elapsed >= threshold_sec and time_since_last_hint >= self.hint_cooldown : #and not self.hint_active
+                #print("dwad")
+                if self.assistance_enabled and elapsed >= threshold_sec and time_since_last_hint >= self.hint_cooldown and not self.image_disappeared :
                     msg = self.direction(gaze_pos, self.target_pos) # hier ist irgendwas
                     if msg:
                         print(f"Hinweis: {msg}")
@@ -223,9 +235,10 @@ class ExperimentApp:
         if self.surface.uid in result.mapped_gaze:
             print("dd")
             for surface_gaze in result.mapped_gaze[self.surface.uid]:
-                self.offset_x = 0.501 - surface_gaze.x
-                self.offset_y=  0.465 -surface_gaze.y
-        print("Kalibrierung fertig!")
+                self.offset_x = 0.5 - surface_gaze.x
+                self.offset_y=  0.45 -surface_gaze.y
+
+    print("Kalibrierung fertig!")
 
     def calibrate_and_continue(self, next_frame):
         self.marker_window.showMarkers()
@@ -238,6 +251,7 @@ class ExperimentApp:
 
         self.start_timer = time.time()
         self.last_hint_time=time.time()
+        self.image_disappeared=False
         self.target_found = False
         self.start_counting()
 
@@ -274,7 +288,7 @@ class ExperimentApp:
             print("Beispielbild nicht gefunden!")
 
         start_button = Button(self.slides['slide1'], text="Starten", font=("Segoe UI", 20),
-                              command=lambda: self.calibrate_and_continue(self.slideCountdown))
+                              command=lambda: self.show_frame(self.slidePause))
         start_button.pack(side="bottom", pady=20)
 
         self.countdown_label = Label(self.slideCountdown, text="", font=("Segoe UI", 40), fg="red")
@@ -295,19 +309,32 @@ class ExperimentApp:
         end_label.pack(expand=True)
 
     def load_images(self):
+        img_w, img_h = int((2200/2880)*screen_size[0]), screen_size[1]
         for i in range(2, 12):
             try:
+                # Canvas erstellen
+                self.canvas[f'slide{i}'] = Canvas(self.slides[f'slide{i}'], width=screen_size[0], height=screen_size[1])
+                self.canvas[f'slide{i}'].pack(fill=BOTH, expand=True)
+
                 image_path = f"pictures/whereIsWaldo{i-1}.jpg"
-                img = Image.open(image_path).resize((2200,1920))
+                img = Image.open(image_path).resize((img_w, img_h))
                 ph = ImageTk.PhotoImage(img)
-                label = Label(self.slides[f'slide{i}'], image=ph)
-                label.image = ph
-                label.pack(expand=True)
+
+                self.canvas[f'slide{i}'].create_image(screen_size[0]//2, screen_size[1]//2, anchor='center', image=ph)
+
+                self.canvas[f'slide{i}'].image = ph
+                self.canvas[f'slide{i}'].create_oval(self.targets[f'slide{i}'][0]-10,self.targets[f'slide{i}'][1]-10,self.targets[f'slide{i}'][0]+10,self.targets[f'slide{i}'][1]+10,fill="blue")
+
+
+                print(self.targets[f'slide{i}'], "targetslll")
+
             except FileNotFoundError:
                 print(f"Bild {image_path} nicht gefunden!")
-
     def show_frame(self, frame):
+        if frame == self.slidePause :
+            self.image_disappeared=True
         frame.tkraise()
+
 
     def start_counting(self, seconds=3):
         if seconds > 0:
@@ -317,7 +344,12 @@ class ExperimentApp:
             if self.current_index < len(self.image_orders):
                 slide_name = f'slide{self.image_orders[self.current_index]}'
                 if slide_name in self.targets:
-                    self.target_pos = self.targets[slide_name]
+                    orig_x,orig_y=self.targets[slide_name]
+                    img_w, img_h = int((2200/2880)*screen_size[0]), screen_size[1]
+                    screen_w,screen_h=screen_size
+                    offsetx=(screen_w-img_w)/2
+                    offset_y = (screen_h - img_h) / 2
+                    self.target_pos =self.targets[slide_name]# (orig_x + offsetx, orig_y + offset_y)
                     print(f"Target für {slide_name}: {self.target_pos}")
                 else:
                     self.target_pos = None
@@ -337,11 +369,10 @@ class ExperimentApp:
 
     # define direction
     def direction(self, gaze, target):
-        print("Sie lebt")
         dx = target[0] - gaze[0]
         dy = target[1] - gaze[1]
 
-        print(f"Gaze: {gaze}, Target: {target}, dx={dx}, dy={dy}")
+       # print(f"Gaze: {gaze}, Target: {target}, dx={dx}, dy={dy}")
 
         if abs(dx) > abs(dy):
             if dx>0:
